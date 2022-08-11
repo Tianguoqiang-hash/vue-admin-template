@@ -9,3 +9,5 @@ export const addOrUpdate = (data)=>{
         return request({url:'/api/admin/product/baseTrademark/save',data,method:'post'})
     }
 }
+// 删除品牌
+export const moveTradeMark = (id)=>request({url:`/api/admin/product/baseTrademark/remove/${id}`,method:'delete'})

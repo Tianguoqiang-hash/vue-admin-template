@@ -4,12 +4,12 @@
       type="primary"
       icon="el-icon-plus"
       @click="showDialog">添加</el-button>
-    <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
-      <el-form :model="tradeMarkForm">
-        <el-form-item label="品牌名称" label-width="100px" style="width: 60%">
+    <el-dialog :title="tradeMarkForm.id?'编辑品牌':'添加品牌'" :visible.sync="dialogFormVisible">
+      <el-form :model="tradeMarkForm" :rules="rules" ref="tmForm">
+        <el-form-item label="品牌名称" label-width="100px" style="width: 60%" prop="tmName">
           <el-input autocomplete="off" v-model="tradeMarkForm.tmName"></el-input>
         </el-form-item>
-        <el-form-item label="品牌LOGO" label-width="100px">
+        <el-form-item label="品牌LOGO" label-width="100px" prop="logoUrl">
           <el-upload
             class="avatar-uploader"
             action="/api/admin/product/fileUpload"
@@ -39,7 +39,7 @@
       <el-table-column prop="prop" label="操作" width="width">
         <template v-slot="scope">
           <el-button type="primary" size="mini" icon="el-icon-edit" @click="update(scope.row)">编辑</el-button>
-          <el-button type="warning" size="mini" icon="el-icon-delete">删除</el-button>
+          <el-button type="warning" size="mini" icon="el-icon-delete" @click="moveTradeMark(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -68,6 +68,15 @@ export default {
       tradeMarkForm: {
         tmName: '',
         logoUrl: '',
+      },
+      rules: {
+        tmName: [
+          { required: true, message: '请输入品牌名称', trigger: 'blur' },
+          { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'change' }
+        ],
+        logoUrl: [
+          { required: true, message: '请选择品牌logo', trigger: 'change' }
+        ],
       }
     };
   },
@@ -98,13 +107,20 @@ export default {
       }
       return isJPG && isLt2M;
     },
-    async addOrUpdate(){
-      this.dialogFormVisible = false
-      let result = await this.$api.tradeMark.addOrUpdate(this.tradeMarkForm)
-      if(result.code === 200){
-        this.$message(this.tradeMarkForm.id?'修改品牌成功':'添加品牌成功')
-        this.getTradeMark()
-      }
+    addOrUpdate(){
+      this.$refs.tmForm.validate(async (success)=>{
+        if(success) {
+          this.dialogFormVisible = false
+          let result = await this.$api.tradeMark.addOrUpdate(this.tradeMarkForm)
+          if(result.code === 200){
+            this.$message(this.tradeMarkForm.id?'修改品牌成功':'添加品牌成功')
+            this.getTradeMark(this.tradeMarkForm.id?this.records.current:1)
+          }
+        } else {
+          console.log('error submit!!');
+          return false
+        }
+      })
     },
     showDialog(){
       this.tradeMarkForm = {tmName:'',logoUrl:''}
@@ -112,8 +128,28 @@ export default {
     },
     update(row){
       this.dialogFormVisible = true
-      console.log(row);
       this.tradeMarkForm = {...row}
+    },
+    moveTradeMark(id){
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(async () => {
+          let result = await this.$api.tradeMark.moveTradeMark(id)
+          if(result.code === 200){
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+            this.getTradeMark(this.records.current)
+          }
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
     }
   },
 };
