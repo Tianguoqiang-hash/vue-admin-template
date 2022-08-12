@@ -56,7 +56,8 @@
           <el-table-column label="序号" width="80" type="index" align="center" header-align="center"></el-table-column>
           <el-table-column prop="prop" label="属性值名称" width="width" header-align="center">
             <template v-slot="scope">
-              <el-input v-model="scope.row.valueName" size="mini" placeholder="请输入属性值名称"></el-input>
+              <el-input v-model="scope.row.valueName" v-if="scope.row.isShowInput" size="mini" placeholder="请输入属性值名称" @blur="scope.row.isShowInput = false" autofocus="true"></el-input>
+              <span v-else @click="scope.row.isShowInput = true">{{scope.row.valueName}}</span>
             </template>
           </el-table-column>
           <el-table-column prop="prop" label="操作" width="width" header-align="center">
@@ -79,7 +80,7 @@ export default {
     data() {
       return {
         categoryList: [],
-        isShowTable: false,
+        isShowTable: true,
         aForm: {
           attrName: "",
           attrValueList: [],
@@ -93,7 +94,7 @@ export default {
         this.categoryList = categoryList
       },
       addAttr(){
-        this.aForm.attrValueList.push({attrId:'',valueName:''})
+        this.aForm.attrValueList.push({attrId:this.aForm.id || undefined,valueName:'',isShowInput:true})
       },
       add(){
         this.isShowTable = false
@@ -104,6 +105,9 @@ export default {
       update(row){
         this.isShowTable = false
         this.aForm = cloneDeep(row)
+        this.aForm.attrValueList.forEach((item)=>{
+          this.$set(item,'isShowInput',false)
+        })
       }
     }
 }
