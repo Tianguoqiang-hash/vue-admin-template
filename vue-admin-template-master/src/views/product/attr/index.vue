@@ -45,7 +45,7 @@
         </el-table>
       </div>
       <div v-show="!isShowTable">
-        <el-form :inline="true" ref="form" model="aForm" label-width="80px" @submit.native.prevent>
+        <el-form :inline="true" ref="form" :model="aForm" label-width="80px" @submit.native.prevent>
           <el-form-item label="属性名">
             <el-input placeholder="请输入属性名" v-model="aForm.attrName"></el-input>
           </el-form-item>
